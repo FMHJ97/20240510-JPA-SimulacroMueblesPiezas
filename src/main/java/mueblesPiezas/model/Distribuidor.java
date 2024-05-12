@@ -109,4 +109,9 @@ public class Distribuidor extends Entidad implements Serializable {
 		this.telefono = telefono;
 	}
 
+	@Override
+	public String toString() {
+		return nombre + " (" + localidad + ", " + provincia + ")";
+	}
+
 }

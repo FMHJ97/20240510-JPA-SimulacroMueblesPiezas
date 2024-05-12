@@ -4,6 +4,7 @@ import javax.swing.JPanel;
 import java.awt.BorderLayout;
 import javax.swing.JToolBar;
 import javax.swing.JButton;
+import javax.swing.JDialog;
 import javax.swing.ImageIcon;
 import java.awt.GridBagLayout;
 import javax.swing.JLabel;
@@ -12,6 +13,7 @@ import javax.swing.JOptionPane;
 import java.awt.GridBagConstraints;
 import java.awt.Font;
 import java.awt.Insets;
+import java.awt.Toolkit;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 
@@ -34,12 +36,13 @@ public class PanelPieza extends JPanel {
 	private static final long serialVersionUID = 1L;
 	private JTextField jtfId;
 	private JTextField jtfNombre;
-	private JTable table;
 	private JSlider slider;
 	private JLabel lbCantidad;
-	private DefaultTableModel dtm = null;
 	private Object datosTabla[][] = DatosDeTabla.getDatosDeTabla();
 	private String titulosTabla[] = DatosDeTabla.getTitulosColumnas();
+	
+	public JTable table;
+	public DefaultTableModel dtm = null;
 
 	/**
 	 * Create the panel.
@@ -235,9 +238,23 @@ public class PanelPieza extends JPanel {
 		panel.add(scrollPane, gbc_scrollPane);
 		
 		JButton btnVerMueble = new JButton("Ver Mueble");
+		btnVerMueble.addActionListener(new ActionListener() {
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				Mueble m = getMuebleFromTable();
+				if (m != null) {
+					// Asignamos el id del Objeto Mueble.
+					showJDialog(m);
+				} else {
+					JOptionPane.showMessageDialog(null, 
+							"Seleccione un mueble de la tabla");
+					return;
+				}
+			}
+		});
 		btnVerMueble.setFont(new Font("Tahoma", Font.PLAIN, 15));
 		GridBagConstraints gbc_btnVerMueble = new GridBagConstraints();
-		gbc_btnVerMueble.insets = new Insets(10, 0, 0, 10);
+		gbc_btnVerMueble.insets = new Insets(10, 0, 20, 10);
 		gbc_btnVerMueble.gridx = 2;
 		gbc_btnVerMueble.gridy = 4;
 		panel.add(btnVerMueble, gbc_btnVerMueble);
@@ -306,11 +323,8 @@ public class PanelPieza extends JPanel {
 		p.setCantidad(this.slider.getValue());
 		
 		// Procedemos a obtener el Objeto Mueble de la fila seleccionada.
-		int indexRow = this.table.getSelectedRow();
-		if (indexRow != -1) {
-			Integer idCelda = (Integer) this.dtm.getValueAt(indexRow, 0);
-			Mueble m = (Mueble) ControladorMuebleJPA
-					.getInstance().findById(idCelda);
+		Mueble m = getMuebleFromTable();
+		if (m != null) {
 			// Asignamos el id del Objeto Mueble.
 			p.setIdMueble(m.getId());
 		} else {
@@ -500,6 +514,44 @@ public class PanelPieza extends JPanel {
 			
 		};
 		return dtm;
+	}
+	
+	/**
+	 * Creamos un JDialog con un panel PanelMueble.
+	 */
+	private void showJDialog(Mueble m) {
+		// Inicializamos un JDialog.
+		JDialog dialogo = new JDialog();
+		// El usuario no puede redimensionar el diálogo
+		dialogo.setResizable(true);
+		// título del díalogo
+		dialogo.setTitle("Gestión de Muebles");
+		// Pasamos parámetros al constructor del PanelMueble.
+		// El objeto Mueble y la tabla + modelo (actualizar datos).
+		dialogo.setContentPane(new PanelMueble(m, dtm, table));
+		// Empaquetar el di�logo hace que todos los componentes ocupen el espacio que deben y el lugar adecuado
+		dialogo.pack();
+		// El usuario no puede hacer clic sobre la ventana padre, si el Di�logo es modal
+		dialogo.setModal(true);
+		// Centro el di�logo en pantalla
+		dialogo.setLocation((Toolkit.getDefaultToolkit().getScreenSize().width)/2 - dialogo.getWidth()/2, 
+				(Toolkit.getDefaultToolkit().getScreenSize().height)/2 - dialogo.getHeight()/2);
+		// Muestro el di�logo en pantalla
+		dialogo.setVisible(true);
+	}
+
+	/**
+	 * Devuelve el Objeto Mueble seleccionado.
+	 * @return Objeto Mueble
+	 */
+	private Mueble getMuebleFromTable() {
+		int indexRow = this.table.getSelectedRow();
+		if (indexRow != -1) {
+			Integer idMueble = (Integer) dtm.getValueAt(indexRow, 0);
+			return (Mueble) ControladorMuebleJPA
+					.getInstance().findById(idMueble);
+		}
+		return null;
 	}
 	
 }

@@ -79,4 +79,9 @@ public class Carpintero extends Entidad implements Serializable {
 		this.telefono = telefono;
 	}
 
+	@Override
+	public String toString() {
+		return nombre + " " + apellido1 + " " + apellido2;
+	}
+
 }
